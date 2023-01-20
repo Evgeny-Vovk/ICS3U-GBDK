@@ -14,7 +14,43 @@
 #include "SpaceAliens.c"
 #include "Background.c"
 
-void main () {
+typedef enum {
+    SPLASH,
+    START,
+    GAME,
+    GAME_OVER
+} screen_t;
+
+screen_t splash() {
+    uint8_t joypadData;
+    screen_t next_screen = GAME;
+
+    unsigned int timeCounter = 0;
+
+    printf("\n\n\n\n\n");
+    printf("   MT Game Studios");
+    printf("        Presents");
+    printf("\n\n\n\n\n\n");
+    printf("    Space Aliens");
+
+    DISPLAY_ON;
+
+    while (1) {
+        joypadData = joypad();
+
+        if (joypadData & J_START) {
+            return next_screen;
+        }
+
+        timeCounter++;
+        if (timeCounter > (3 * 60)) {
+            return next_screen;
+        }
+        wait_vbl_done();
+    }
+}
+
+screen_t game () {
     uint8_t joypadData;
 
     bool aButtonJustPressed = false;
@@ -81,5 +117,28 @@ void main () {
         scroll_bkg(0, -1);
 
         wait_vbl_done();
+    }
+}
+
+void main() {
+    screen_t current_screen = SPLASH;
+
+    NR52_REG = 0x80;
+    NR50_REG = 0x77;
+    NR51_REG = 0xFF;
+
+    while (1) {
+        if (current_screen == SPLASH) {
+            current_screen = splash();
+        }
+        else if (current_screen == START) {
+            printf("start");
+        }
+        else if (current_screen == GAME) {
+            current_screen = game();
+        }
+        else if (current_screen == GAME_OVER) {
+            printf("game_over");
+        }
     }
 }
